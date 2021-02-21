@@ -23,6 +23,9 @@
 #include<algorithm>
 #include<fstream>
 #include<chrono>
+#ifdef __APPLE__
+#include<unistd.h>
+#endif
 
 #include<opencv2/core/core.hpp>
 

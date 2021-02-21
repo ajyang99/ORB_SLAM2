@@ -36,6 +36,12 @@ if(NOT OpenCV_FOUND)
    endif()
 endif()
 
+if(APPLE)
+   message(STATUS "Compiling on Mac OS")
+elseif (UNIX)
+   message(STATUS "Compiling on Unix")
+endif(APPLE)
+
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 
@@ -70,6 +76,15 @@ src/Initializer.cc
 src/Viewer.cc
 )
 
+if(APPLE)
+target_link_libraries(${PROJECT_NAME}
+${OpenCV_LIBS}
+${EIGEN3_LIBS}
+${Pangolin_LIBRARIES}
+${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.dylib
+${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.dylib
+)
+else()
 target_link_libraries(${PROJECT_NAME}
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
@@ -77,6 +92,7 @@ ${Pangolin_LIBRARIES}
 ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
 )
+endif (APPLE)
 
 # Build examples
 

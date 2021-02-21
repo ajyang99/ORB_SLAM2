@@ -24,6 +24,9 @@
 #include<fstream>
 #include<iomanip>
 #include<chrono>
+#ifdef __APPLE__
+#include<unistd.h>
+#endif
 
 #include<opencv2/core/core.hpp>
 

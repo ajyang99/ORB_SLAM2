@@ -36,6 +36,9 @@
 #include<iostream>
 
 #include<mutex>
+#ifdef __APPLE__
+#include<unistd.h>
+#endif
 
 
 using namespace std;
