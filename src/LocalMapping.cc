@@ -24,9 +24,7 @@
 #include "Optimizer.h"
 
 #include<mutex>
-#ifdef __APPLE__
 #include<unistd.h>
-#endif
 
 namespace ORB_SLAM2
 {

@@ -25,9 +25,7 @@
 #include <thread>
 #include <pangolin/pangolin.h>
 #include <iomanip>
-#ifdef __APPLE__
-#include<unistd.h>
-#endif
+#include <unistd.h>
 
 namespace ORB_SLAM2
 {

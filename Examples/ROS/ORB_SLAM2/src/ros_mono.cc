@@ -23,9 +23,7 @@
 #include<algorithm>
 #include<fstream>
 #include<chrono>
-#ifdef __APPLE__
 #include<unistd.h>
-#endif
 
 #include<ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
