@@ -1,4 +1,11 @@
-# ORB-SLAM2
+# ORB-SLAM2 (fork)
+This fork has been modified to compile on both Linux and MacOS platforms. For Mac systems, it works out of the box with prerequisites installed via Brew. Note that the visualization/viewer option is not usable for MacOS, as MacOS requires Pangolin to run on the main thread. Please see [this fork](https://github.com/kitizz/ORB_SLAM2) for modifications that can potentially fix this issue. For prerequisites and compilation/installation instructions, please refer to the original text provided by the authors below.
+
+In addition, several changes have also been made, including:
+* Disabling key frame selection and culling so that tracking, bundle adjustment, etc. is performed on every image frame
+* Changing `mono_kitti.cc` to support different input arguments
+
+# ORB-SLAM2 (Original Text)
 **Authors:** [Raul Mur-Artal](http://webdiis.unizar.es/~raulmur/), [Juan D. Tardos](http://webdiis.unizar.es/~jdtardos/), [J. M. M. Montiel](http://webdiis.unizar.es/~josemari/) and [Dorian Galvez-Lopez](http://doriangalvez.com/) ([DBoW2](https://github.com/dorian3d/DBoW2))
 
 **13 Jan 2017**: OpenCV 3 and Eigen 3.3 are now supported.
