@@ -304,11 +304,13 @@ void Tracking::Track()
 
             if(mState==OK)
             {
+                // cout << "mState is OK" << endl;
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
 
                 if(mVelocity.empty() || mCurrentFrame.mnId<mnLastRelocFrameId+2)
                 {
+                    // cout << "track reference key frame" << endl;
                     bOK = TrackReferenceKeyFrame();
                 }
                 else
@@ -423,6 +425,7 @@ void Tracking::Track()
         // If tracking were good, check if we insert a keyframe
         if(bOK)
         {
+            // cout << "bOK is true" << endl;
             // Update motion model
             if(!mLastFrame.mTcw.empty())
             {
@@ -457,8 +460,11 @@ void Tracking::Track()
             mlpTemporalPoints.clear();
 
             // Check if we need to insert a new keyframe
-            if(NeedNewKeyFrame())
+            // cout << "before querying key frame" << endl;
+            if(NeedNewKeyFrame()) {
                 CreateNewKeyFrame();
+                // cout << "new key frame created" << endl;
+            }
 
             // We allow points with high innovation (considererd outliers by the Huber Function)
             // pass to the new keyframe, so that bundle adjustment will finally decide
@@ -1037,7 +1043,8 @@ bool Tracking::NeedNewKeyFrame()
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
     const bool c2 = ((mnMatchesInliers<nRefMatches*thRefRatio|| bNeedToInsertClose) && mnMatchesInliers>15);
 
-    if((c1a||c1b||c1c)&&c2)
+    if(true) // hack to make every frame a keyframe
+    // if((c1a||c1b||c1c)&&c2)
     {
         // If the mapping accepts keyframes, insert keyframe.
         // Otherwise send a signal to interrupt BA
@@ -1048,15 +1055,17 @@ bool Tracking::NeedNewKeyFrame()
         else
         {
             mpLocalMapper->InterruptBA();
-            if(mSensor!=System::MONOCULAR)
-            {
-                if(mpLocalMapper->KeyframesInQueue()<3)
-                    return true;
-                else
-                    return false;
-            }
-            else
-                return false;
+            // cout << mpLocalMapper->KeyframesInQueue() << endl;
+            // if(mSensor!=System::MONOCULAR)
+            // {
+            //     if(mpLocalMapper->KeyframesInQueue()<3)
+            //         return true;
+            //     else
+            //         return false;
+            // }
+            // else
+            //     return false;
+            return true;
         }
     }
     else
