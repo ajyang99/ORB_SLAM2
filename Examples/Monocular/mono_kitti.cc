@@ -34,26 +34,26 @@
 
 using namespace std;
 
-void LoadImages(const string &strSequence, vector<string> &vstrImageFilenames,
-                vector<double> &vTimestamps);
+void LoadImages(const string &strSequence, const string &strPathToSnippet,
+                vector<string> &vstrImageFilenames, vector<double> &vTimestamps);
 
 int main(int argc, char **argv)
 {
-    if(argc != 4)
+    if(argc != 6)
     {
-        cerr << endl << "Usage: ./mono_kitti path_to_vocabulary path_to_settings path_to_sequence" << endl;
+        cerr << endl << "Usage: ./mono_kitti path_to_vocabulary path_to_settings path_to_video_data path_to_snippet_data output_dir" << endl;
         return 1;
     }
 
     // Retrieve paths to images
     vector<string> vstrImageFilenames;
     vector<double> vTimestamps;
-    LoadImages(string(argv[3]), vstrImageFilenames, vTimestamps);
+    LoadImages(string(argv[3]), string(argv[4]), vstrImageFilenames, vTimestamps);
 
     int nImages = vstrImageFilenames.size();
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,true);
+    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,false);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -69,6 +69,7 @@ int main(int argc, char **argv)
     {
         // Read image from file
         im = cv::imread(vstrImageFilenames[ni],CV_LOAD_IMAGE_UNCHANGED);
+        cout << "Processing image " << ni << endl;
         double tframe = vTimestamps[ni];
 
         if(im.empty())
@@ -97,18 +98,21 @@ int main(int argc, char **argv)
         vTimesTrack[ni]=ttrack;
 
         // Wait to load the next frame
-        double T=0;
-        if(ni<nImages-1)
-            T = vTimestamps[ni+1]-tframe;
-        else if(ni>0)
-            T = tframe-vTimestamps[ni-1];
+        // double T=0;
+        // if(ni<nImages-1)
+        //     T = vTimestamps[ni+1]-tframe;
+        // else if(ni>0)
+        //     T = tframe-vTimestamps[ni-1];
+        // T /= 1e6;
 
-        if(ttrack<T)
-            usleep((T-ttrack)*1e6);
+        // cout << ttrack << " " << T << endl;
+        // if(ttrack<T)
+        //     usleep(T-ttrack);
     }
 
     // Stop all threads
     SLAM.Shutdown();
+    cout << "System Shutdown" << endl;
 
     // Tracking time statistics
     sort(vTimesTrack.begin(),vTimesTrack.end());
@@ -122,15 +126,16 @@ int main(int argc, char **argv)
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
     // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");    
+    // SLAM.SaveTrajectoryTUM(string(argv[5]) + "/FrameTrajectory.txt");
+    SLAM.SaveKeyFrameTrajectoryTUM(string(argv[5]) + "/KeyFrameTrajectory.txt");    
 
     return 0;
 }
 
-void LoadImages(const string &strPathToSequence, vector<string> &vstrImageFilenames, vector<double> &vTimestamps)
+void LoadImages(const string &strPathToData, const string &strPathToSnippet, vector<string> &vstrImageFilenames, vector<double> &vTimestamps)
 {
     ifstream fTimes;
-    string strPathTimeFile = strPathToSequence + "/times.txt";
+    string strPathTimeFile = strPathToSnippet + "/times.txt";
     fTimes.open(strPathTimeFile.c_str());
     while(!fTimes.eof())
     {
@@ -146,15 +151,25 @@ void LoadImages(const string &strPathToSequence, vector<string> &vstrImageFilena
         }
     }
 
-    string strPrefixLeft = strPathToSequence + "/image_0/";
+    string strPrefixLeft = strPathToData + "/image_0_resized/";
 
     const int nTimes = vTimestamps.size();
     vstrImageFilenames.resize(nTimes);
 
-    for(int i=0; i<nTimes; i++)
+    ifstream fImgs;
+    string strPathImageFile = strPathToSnippet + "/image_names.txt";
+    fImgs.open(strPathImageFile.c_str());
+    int i = 0;
+    while(!fImgs.eof())
     {
-        stringstream ss;
-        ss << setfill('0') << setw(6) << i;
-        vstrImageFilenames[i] = strPrefixLeft + ss.str() + ".png";
+        string s;
+        getline(fImgs,s);
+        if(!s.empty())
+        {
+            assert(i < nTimes);
+            vstrImageFilenames[i] = strPrefixLeft+s;
+            ++i;
+        }
     }
+    assert(i == nTimes);
 }
