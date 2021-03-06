@@ -308,19 +308,24 @@ void Tracking::Track()
 
                 if(mVelocity.empty() || mCurrentFrame.mnId<mnLastRelocFrameId+2)
                 {
-                    // cout << "track reference key frame" << endl;
+                    cout << "track reference key frame" << endl;
                     bOK = TrackReferenceKeyFrame();
+                    cout << "bOK status is: " << bOK << endl;
                 }
                 else
                 {
+                    cout << "track with motion model or with reference key frame" << endl;
                     bOK = TrackWithMotionModel();
                     if(!bOK)
                         bOK = TrackReferenceKeyFrame();
+                    cout << "bOK status is: " << bOK << endl;
                 }
             }
             else
             {
+                cout << "track with relocalization" << endl;
                 bOK = Relocalization();
+                cout << "bOK status is: " << bOK << endl;
             }
         }
         else
@@ -423,7 +428,7 @@ void Tracking::Track()
         // If tracking were good, check if we insert a keyframe
         if(bOK)
         {
-            // cout << "bOK is true" << endl;
+            cout << "bOK is true" << endl;
             // Update motion model
             if(!mLastFrame.mTcw.empty())
             {
@@ -772,6 +777,7 @@ bool Tracking::TrackReferenceKeyFrame()
     vector<MapPoint*> vpMapPointMatches;
 
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
+    cout << "TrackReferenceKeyFrame nmatches " << nmatches << endl;
 
     if(nmatches<15)
         return false;
@@ -890,15 +896,18 @@ bool Tracking::TrackWithMotionModel()
     else
         th=7;
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,mSensor==System::MONOCULAR);
+    cout << "TrackWithMotionModel nmatches is " << nmatches << endl;
 
     // If few matches, uses a wider window search
-    if(nmatches<20)
+    // if(nmatches<20)
+    if(nmatches<10)
     {
         fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<MapPoint*>(NULL));
         nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,2*th,mSensor==System::MONOCULAR);
     }
 
-    if(nmatches<20)
+    // if(nmatches<20)
+    if(nmatches<10)
         return false;
 
     // Optimize frame pose with all matches
@@ -928,9 +937,11 @@ bool Tracking::TrackWithMotionModel()
     if(mbOnlyTracking)
     {
         mbVO = nmatchesMap<10;
-        return nmatches>20;
+        return nmatches>10;
+        // return nmatches>20;
     }
 
+    cout << "TrackWithMotionModel nmatches map is " << nmatchesMap << endl;
     return nmatchesMap>=10;
 }
 
@@ -971,11 +982,16 @@ bool Tracking::TrackLocalMap()
 
     // Decide if the tracking was succesful
     // More restrictive if there was a relocalization recently
+    // if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && mnMatchesInliers<50)
+    //     return false;
     if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && mnMatchesInliers<50)
-        return false;
+        cout << "current frame id " << mCurrentFrame.mnId << " last reloc frame id " << mnLastRelocFrameId << " max frames " << mMaxFrames << endl;
 
-    if(mnMatchesInliers<30)
+    // if(mnMatchesInliers<30)
+    if(mnMatchesInliers<10) {
+        cout << "TrackLocalMap failed; number of inliers: " << mnMatchesInliers << endl;
         return false;
+    }
     else
         return true;
 }
